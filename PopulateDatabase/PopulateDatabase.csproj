@@ -8,6 +8,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Posters\**" />
+    <EmbeddedResource Remove="Posters\**" />
+    <None Remove="Posters\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="SampleCinemas.csv" />
+    <None Remove="SampleCinemasWithPositions.csv" />
+    <None Remove="SampleMovies.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="SampleCinemas.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SampleCinemasWithPositions.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SampleMovies.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.10">

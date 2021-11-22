@@ -7,6 +7,114 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Posters\astra.jpg" />
+    <None Remove="Posters\babel.jpg" />
+    <None Remove="Posters\burn.jpg" />
+    <None Remove="Posters\button.jpg" />
+    <None Remove="Posters\eleven.jpg" />
+    <None Remove="Posters\fall.jpg" />
+    <None Remove="Posters\fight.jpg" />
+    <None Remove="Posters\jesse.jpg" />
+    <None Remove="Posters\joe.jpg" />
+    <None Remove="Posters\megamind.jpg" />
+    <None Remove="Posters\mexican.jpg" />
+    <None Remove="Posters\moneyball.jpg" />
+    <None Remove="Posters\monkeys.jpg" />
+    <None Remove="Posters\se7en.jpg" />
+    <None Remove="Posters\sinbad.jpg" />
+    <None Remove="Posters\smith.jpg" />
+    <None Remove="Posters\snatch.jpg" />
+    <None Remove="Posters\thelma.jpg" />
+    <None Remove="Posters\thirteen.jpg" />
+    <None Remove="Posters\tibet.jpg" />
+    <None Remove="Posters\troy.jpg" />
+    <None Remove="Posters\twelve.jpg" />
+    <None Remove="Posters\vampire.jpg" />
+    <None Remove="Posters\wwz.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Posters\astra.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\babel.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\burn.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\button.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\eleven.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\fall.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\fight.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\jesse.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\joe.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\megamind.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\mexican.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\moneyball.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\monkeys.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\se7en.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\sinbad.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\smith.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\snatch.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\thelma.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\thirteen.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\tibet.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\troy.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\twelve.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\vampire.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Posters\wwz.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.10" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
 
