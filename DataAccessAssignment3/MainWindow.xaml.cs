@@ -260,9 +260,10 @@ namespace DataAccessAssignment3
 
         // Get a list of all cities that have cinemas in them.
         private IEnumerable<string> GetCities()
-        {            
+        {
+            var cityObjects = database.Cinemas.Select(c => c.City).Distinct().ToList();
             var cities = new List<string>();
-            foreach (var city in database.Cinemas.Select(c => c.City).Distinct())
+            foreach (var city in cityObjects)
             {
                 cities.Add(city);
             }
@@ -278,8 +279,7 @@ namespace DataAccessAssignment3
             foreach (var cinema in cinemaObjects)
             {
                 cinemas.Add(cinema.Name);
-            }
-                
+            }                
             return cinemas;
         }
 
@@ -304,9 +304,14 @@ namespace DataAccessAssignment3
             
             string cinema = (string)cinemaListBox.SelectedItem;
             int cinemaID = database.Cinemas.First(c => c.Name == cinema).ID;
+            var screenings = database.Screenings
+                .Include(s => s.Cinema)
+                .Include(s => s.Movie)
+                .Where(s => s.Cinema.ID == cinemaID)
+                .ToList();
 
             // For each screening:
-            foreach (var screening in database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.Cinema.ID == cinemaID))
+            foreach (var screening in screenings)
             {
                 // Create the button that will show all the info about the screening and let us buy a ticket for it.
                 var button = new Button
@@ -318,9 +323,9 @@ namespace DataAccessAssignment3
                     HorizontalContentAlignment = HorizontalAlignment.Stretch
                 };
                 screeningPanel.Children.Add(button);
-                int screeningID = screening.ID;
 
                 // When we click a screening, buy a ticket for it and update the GUI with the latest list of tickets.
+                int screeningID = screening.ID;
                 button.Click += (sender, e) =>
                 {
                     BuyTicket(screeningID);
@@ -335,11 +340,10 @@ namespace DataAccessAssignment3
                 grid.RowDefinitions.Add(new RowDefinition());
                 button.Content = grid;
 
-                var movie = database.Movies.First(m => m.ID == screening.Movie.ID);
-                var image = CreateImage(movie.PosterPath);
+                var image = CreateImage(@"Posters/" + screening.Movie.PosterPath);
                 image.Width = 50;
                 image.Margin = spacing;
-                string title = database.Movies.First(m => m.ID == screening.Movie.ID).Title;
+                string title = screening.Movie.Title;
                 image.ToolTip = new ToolTip { Content = title };
                 AddToGrid(grid, image, 0, 0);
                 Grid.SetRowSpan(image, 3);
@@ -367,8 +371,8 @@ namespace DataAccessAssignment3
                 };
                 AddToGrid(grid, titleHeading, 1, 1);
 
-                var releaseDate = database.Movies.First(m => m.ID == screening.Movie.ID).ReleaseDate;
-                int runtimeMinutes = database.Movies.First(m => m.ID == screening.Movie.ID).Runtime;
+                var releaseDate = screening.Movie.ReleaseDate;
+                int runtimeMinutes = screening.Movie.Runtime;
                 var runtime = TimeSpan.FromMinutes(runtimeMinutes);
                 string runtimeString = runtime.Hours + "h " + runtime.Minutes + "m";
                 var details = new TextBlock
@@ -392,7 +396,7 @@ namespace DataAccessAssignment3
             if (count == 0)
             {
                 Ticket ticket = new Ticket();
-                ticket.Screening.ID = screeningID;
+                ticket.Screening = database.Screenings.First(s => s.ID == screeningID);
                 ticket.TimePurchased = DateTime.Now;
                 database.Add(ticket);
                 database.SaveChanges();
@@ -405,10 +409,13 @@ namespace DataAccessAssignment3
         private void UpdateTicketList()
         {            
             ticketPanel.Children.Clear();
-            
+            var tickets = database.Tickets
+                .Include(t => t.Screening).ThenInclude(s => s.Cinema)
+                .Include(t => t.Screening).ThenInclude(s => s.Movie)
+                .ToList();
+
             // For each ticket:
-            foreach (var ticket in database.Tickets.Include(t => t.Screening).ThenInclude(s => s.Cinema)
-                .Include(t => t.Screening).ThenInclude(s => s.Movie))
+            foreach (var ticket in tickets)
             {
                 // Create the button that will show all the info about the ticket and let us remove it.
                 var button = new Button
@@ -421,9 +428,8 @@ namespace DataAccessAssignment3
                 };
                 ticketPanel.Children.Add(button);
 
-                int ticketID = ticket.ID;
-
                 // When we click a ticket, remove it and update the GUI with the latest list of tickets.
+                int ticketID = ticket.ID;
                 button.Click += (sender, e) =>
                 {
                     RemoveTicket(ticketID);
@@ -437,13 +443,13 @@ namespace DataAccessAssignment3
                 grid.RowDefinitions.Add(new RowDefinition());
                 button.Content = grid;
 
-                var screening = database.Screenings.First(s => s.ID == ticket.Screening.ID);
-                var image = CreateImage(@"Posters\" + database.Movies.Where(m => m.ID == screening.Movie.ID).Select(m => m.PosterPath).ToString());
+                var screening = ticket.Screening;
+                var image = CreateImage(@"Posters\" + screening.Movie.PosterPath);
 
                 image.Width = 30;
                 image.Margin = spacing;
 
-                var movieName = database.Movies.Where(m => m.ID == screening.Movie.ID).Select(m => m.Title).ToString();
+                var movieName = screening.Movie.Title;
                 image.ToolTip = new ToolTip { Content = movieName };
 
                 AddToGrid(grid, image, 0, 0);
@@ -462,7 +468,7 @@ namespace DataAccessAssignment3
 
                 var time = screening.Time;
 
-                var name = database.Cinemas.Where(c => c.ID == screening.Cinema.ID).Select(c => c.Name).ToString();
+                var name = screening.Cinema.Name;
 
                 string timeString = TimeSpanToString(time);
                 var timeAndCinemaHeading = new TextBlock
