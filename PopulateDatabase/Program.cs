@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,90 +9,63 @@ namespace PopulateDatabase
 {
     public class Program
     {
+        // An EF connection that we will keep open for the entire program.
+        private static AppDbContext database = new AppDbContext();
+
         public static void Main()
         {
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-            using var connection = new SqlConnection(@"Server=(local)\SQLExpress;Database=DataAccessGUIAssignment;Integrated Security=SSPI;");
-            connection.Open();
-
             // Clear the database.
-            new SqlCommand("DELETE FROM Tickets", connection).ExecuteNonQuery();
-            new SqlCommand("DELETE FROM Screenings", connection).ExecuteNonQuery();
-            new SqlCommand("DELETE FROM Movies", connection).ExecuteNonQuery();
-            new SqlCommand("DELETE FROM Cinemas", connection).ExecuteNonQuery();
+            database.Movies.RemoveRange(database.Movies.Where(m => m.ID > -1));
+            database.Cinemas.RemoveRange(database.Cinemas.Where(c => c.ID > -1));
+            database.Screenings.RemoveRange(database.Screenings.Where(s => s.ID > -1));
+            database.SaveChanges();
 
             // Load movies.
             string[] movieLines = File.ReadAllLines("SampleMovies.csv");
             foreach (string line in movieLines)
             {
-                string[] parts = line.Split(',');
-                string title = parts[0];
-                string releaseDateString = parts[1];
-                string runtimeString = parts[2];
-                string posterPath = parts[3];
-
-                int releaseYear = int.Parse(releaseDateString.Split('-')[0]);
-                int releaseMonth = int.Parse(releaseDateString.Split('-')[1]);
-                int releaseDay = int.Parse(releaseDateString.Split('-')[2]);
-                var releaseDate = new DateTime(releaseYear, releaseMonth, releaseDay);
-
-                int runtime = int.Parse(runtimeString);
-
-                string sql = @"
-                    INSERT INTO Movies (Title, ReleaseDate, Runtime, PosterPath)
-                    VALUES (@Title, @ReleaseDate, @Runtime, @PosterPath)";
-                using var command = new SqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@Title", title);
-                command.Parameters.AddWithValue("@ReleaseDate", releaseDate);
-                command.Parameters.AddWithValue("@Runtime", runtime);
-                command.Parameters.AddWithValue("@PosterPath", posterPath);
-                command.ExecuteNonQuery();
+                string[] values = line.Split(',').Select(v => v.Trim()).ToArray();
+                Movie newMovie = new Movie();
+                newMovie.Title = values[0];
+                newMovie.ReleaseDate = DateTime.Parse(values[1]);
+                newMovie.Runtime = Int16.Parse(values[2]);
+                newMovie.PosterPath = values[3];
+                database.Add(newMovie);
             }
+            database.SaveChanges();
 
             // Load cinemas.
-            string[] cinemaLines = File.ReadAllLines("SampleCinemas.csv");
+            string[] cinemaLines = File.ReadAllLines("SampleCinemasWithPositions.csv");
             foreach (string line in cinemaLines)
             {
-                string[] parts = line.Split(',');
-                string city = parts[0];
-                string name= parts[1];
-
-                string sql = @"
-                    INSERT INTO Cinemas (City, Name)
-                    VALUES (@City, @Name)";
-                using var command = new SqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@City", city);
-                command.Parameters.AddWithValue("@Name", name);
-                command.ExecuteNonQuery();
+                string[] values = line.Split(',').Select(v => v.Trim()).ToArray();
+                Cinema newCinema = new Cinema();
+                newCinema.Name = values[0];
+                newCinema.City = values[1];
+                database.Add(newCinema);
             }
+            database.SaveChanges();
 
             // Generate random screenings.
-            
+
             // Get all cinema IDs.
             var cinemaIDs = new List<int>();
+            var cinema = database.Cinemas.Select(c => c.ID);
+            foreach (var i in cinema)
             {
-                string cinemaSql = "SELECT ID FROM Cinemas";
-                using var cinemaCommand = new SqlCommand(cinemaSql, connection);
-                using var cinemaReader = cinemaCommand.ExecuteReader();
-                while (cinemaReader.Read())
-                {
-                    int id = Convert.ToInt32(cinemaReader["ID"]);
-                    cinemaIDs.Add(id);
-                }
+                var id = Convert.ToInt32(i);
+                cinemaIDs.Add(id);
             }
 
             // Get all movie IDs.
             var movieIDs = new List<int>();
+            var movie = database.Movies.Select(m => m.ID);
+            foreach (var i in movie)
             {
-                string movieSql = "SELECT ID FROM Movies";
-                using var movieCommand = new SqlCommand(movieSql, connection);
-                using var movieReader = movieCommand.ExecuteReader();
-                while (movieReader.Read())
-                {
-                    int id = Convert.ToInt32(movieReader["ID"]);
-                    movieIDs.Add(id);
-                }
+                var id = Convert.ToInt32(i);
+                movieIDs.Add(id);
             }
 
             // Create random screenings for each cinema.
@@ -102,7 +74,8 @@ namespace PopulateDatabase
             {
                 // Choose a random number of screenings.
                 int numberOfScreenings = random.Next(2, 6);
-                foreach (int n in Enumerable.Range(0, numberOfScreenings)) {
+                foreach (int n in Enumerable.Range(0, numberOfScreenings))
+                {
                     // Pick a random movie.
                     int movieID = movieIDs[random.Next(movieIDs.Count)];
 
@@ -112,15 +85,12 @@ namespace PopulateDatabase
                     double minute = minuteOptions[random.Next(minuteOptions.Length)];
                     var time = TimeSpan.FromHours(hour) + TimeSpan.FromMinutes(minute);
 
-                    // Insert the screening into the Screenings table.
-                    string screeningSql = @"
-                        INSERT INTO Screenings (MovieID, CinemaID, Time)
-                        VALUES (@MovieID, @CinemaID, @Time)";
-                    using var screeningCommand = new SqlCommand(screeningSql, connection);
-                    screeningCommand.Parameters.AddWithValue("@MovieID", movieID);
-                    screeningCommand.Parameters.AddWithValue("@CinemaID", cinemaID);
-                    screeningCommand.Parameters.AddWithValue("@Time", time);
-                    screeningCommand.ExecuteNonQuery();
+                    Screening screening = new Screening();
+                    screening.Time = time;
+                    screening.Movie = database.Movies.First(m => m.ID == movieID);
+                    screening.Cinema = database.Cinemas.First(c => c.ID == cinemaID);
+                    database.Add(screening);
+                    database.SaveChanges();
                 }
             }
         }

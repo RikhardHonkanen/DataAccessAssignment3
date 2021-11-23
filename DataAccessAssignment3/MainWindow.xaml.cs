@@ -62,7 +62,17 @@ namespace DataAccessAssignment3
         public string Name { get; set; }
         [MaxLength(255), Required]
         public string City { get; set; }
+        [Required]
+        public Coordinate Coordinate { get; set; }
         public List<Screening> Screenings { get; set; }
+    }
+
+    [Owned]
+    public class Coordinate
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Altitude { get; set; }
     }
 
     public class AppDbContext : DbContext
