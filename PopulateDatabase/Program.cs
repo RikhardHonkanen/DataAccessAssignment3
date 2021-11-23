@@ -42,8 +42,13 @@ namespace PopulateDatabase
             {
                 string[] values = line.Split(',').Select(v => v.Trim()).ToArray();
                 Cinema newCinema = new Cinema();
-                newCinema.Name = values[0];
-                newCinema.City = values[1];
+                newCinema.City = values[0];
+                newCinema.Name = values[1];
+                Coordinate cinemaCoordinate = new Coordinate();
+                cinemaCoordinate.Latitude = double.Parse(values[2]);
+                cinemaCoordinate.Longitude = double.Parse(values[3]);
+                cinemaCoordinate.Altitude = 0;
+                newCinema.Coordinate = cinemaCoordinate;
                 database.Add(newCinema);
             }
             database.SaveChanges();
