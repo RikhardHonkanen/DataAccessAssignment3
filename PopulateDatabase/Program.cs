@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using DataAccessAssignment3;
 
 namespace PopulateDatabase
 {
@@ -56,7 +57,7 @@ namespace PopulateDatabase
             {
                 string[] parts = line.Split(',');
                 string city = parts[0];
-                string name = parts[1];
+                string name= parts[1];
 
                 string sql = @"
                     INSERT INTO Cinemas (City, Name)
@@ -68,7 +69,7 @@ namespace PopulateDatabase
             }
 
             // Generate random screenings.
-
+            
             // Get all cinema IDs.
             var cinemaIDs = new List<int>();
             {
@@ -101,8 +102,7 @@ namespace PopulateDatabase
             {
                 // Choose a random number of screenings.
                 int numberOfScreenings = random.Next(2, 6);
-                foreach (int n in Enumerable.Range(0, numberOfScreenings))
-                {
+                foreach (int n in Enumerable.Range(0, numberOfScreenings)) {
                     // Pick a random movie.
                     int movieID = movieIDs[random.Next(movieIDs.Count)];
 
