@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessAssignment3.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20211123072607_NonNullables")]
-    partial class NonNullables
+    [Migration("20211123085933_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

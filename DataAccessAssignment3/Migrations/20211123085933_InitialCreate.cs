@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessAssignment3.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -38,20 +38,6 @@ namespace DataAccessAssignment3.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tickets",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ScreeningID = table.Column<int>(type: "int", nullable: false),
-                    TimePurchased = table.Column<DateTime>(type: "datetime", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tickets", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Screenings",
                 columns: table => new
                 {
@@ -79,25 +65,21 @@ namespace DataAccessAssignment3.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ScreeningTicket",
+                name: "Tickets",
                 columns: table => new
                 {
-                    ScreeningsID = table.Column<int>(type: "int", nullable: false),
-                    TicketsID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ScreeningID = table.Column<int>(type: "int", nullable: false),
+                    TimePurchased = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ScreeningTicket", x => new { x.ScreeningsID, x.TicketsID });
+                    table.PrimaryKey("PK_Tickets", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_ScreeningTicket_Screenings_ScreeningsID",
-                        column: x => x.ScreeningsID,
+                        name: "FK_Tickets_Screenings_ScreeningID",
+                        column: x => x.ScreeningID,
                         principalTable: "Screenings",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ScreeningTicket_Tickets_TicketsID",
-                        column: x => x.TicketsID,
-                        principalTable: "Tickets",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -119,21 +101,18 @@ namespace DataAccessAssignment3.Migrations
                 column: "MovieID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScreeningTicket_TicketsID",
-                table: "ScreeningTicket",
-                column: "TicketsID");
+                name: "IX_Tickets_ScreeningID",
+                table: "Tickets",
+                column: "ScreeningID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ScreeningTicket");
+                name: "Tickets");
 
             migrationBuilder.DropTable(
                 name: "Screenings");
-
-            migrationBuilder.DropTable(
-                name: "Tickets");
 
             migrationBuilder.DropTable(
                 name: "Cinemas");
