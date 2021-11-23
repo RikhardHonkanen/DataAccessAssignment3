@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-//using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -25,10 +24,10 @@ namespace DataAccessAssignment3
     public class Ticket
     {
         public int ID { get; set; }
+        [Required]
         public Screening Screening { get; set; }
         [Column(TypeName="datetime")]
         public DateTime TimePurchased { get; set; }
-        //public List<Screening> Screenings { get; set; }
     }
 
     public class Screening
@@ -36,7 +35,9 @@ namespace DataAccessAssignment3
         public int ID { get; set; }
         [Column(TypeName="time(0)")]
         public TimeSpan Time { get; set; }
+        [Required]
         public Movie Movie { get; set; }
+        [Required]
         public Cinema Cinema { get; set; }
         public List<Ticket> Tickets { get; set; }
     }
@@ -96,9 +97,8 @@ namespace DataAccessAssignment3
         private StackPanel screeningPanel;
         private StackPanel ticketPanel;
 
-        // An SQL connection that we will keep open for the entire program.
+        // An EF connection that we will keep open for the entire program.
         private static AppDbContext database;
-        //private SqlConnection connection;
 
         public MainWindow()
         {            
@@ -107,10 +107,7 @@ namespace DataAccessAssignment3
         }
 
         private void Start()
-        {
-            //connection = new SqlConnection(@"Server=(local)\SQLExpress;Database=DataAccessGUIAssignment;Integrated Security=SSPI;");
-            //connection.Open();
-
+        {            
             // Window options
             Title = "Cinemania";
             Width = 1000;
@@ -126,13 +123,10 @@ namespace DataAccessAssignment3
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(5, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-
-            using (database = new AppDbContext())
-            {
-                AddToGrid(grid, CreateCinemaGUI(), 0, 0);
-                AddToGrid(grid, CreateScreeningGUI(), 0, 1);
-                AddToGrid(grid, CreateTicketGUI(), 0, 2);
-            }
+            
+            AddToGrid(grid, CreateCinemaGUI(), 0, 0);
+            AddToGrid(grid, CreateScreeningGUI(), 0, 1);
+            AddToGrid(grid, CreateTicketGUI(), 0, 2);            
         }
 
         // Create the cinema part of the GUI: the left column.
@@ -266,26 +260,16 @@ namespace DataAccessAssignment3
 
         // Get a list of all cities that have cinemas in them.
         private IEnumerable<string> GetCities()
-        {            
-            var cities = new List<string>();
-            foreach (var cinema in database.Cinemas)
+        {
+            using (database = new AppDbContext())
             {
-                cities.Add(cinema.City);
+                var cities = new List<string>();
+                foreach (var cinema in database.Cinemas)
+                {
+                    cities.Add(cinema.City);
+                }
+                return cities;
             }
-            return cities;
-
-            //string sql = @"
-            //    SELECT DISTINCT City
-            //    FROM Cinemas
-            //    ORDER BY City";
-            //using var command = new SqlCommand(sql, connection);
-            //using var reader = command.ExecuteReader();
-            //var cities = new List<string>();
-            //while (reader.Read())
-            //{
-            //    cities.Add(Convert.ToString(reader["City"]));
-            //}
-            //return cities;
         }
 
         // Get a list of all cinemas in the currently selected city.
@@ -300,20 +284,7 @@ namespace DataAccessAssignment3
                 {
                     cinemas.Add(cinema.Name);
                 }
-
-                //string sql = @"
-                //    SELECT * FROM Cinemas
-                //    WHERE City = @City
-                //    ORDER BY Name";
-                //using var command = new SqlCommand(sql, connection);
-                //string currentCity = (string)cityComboBox.SelectedItem;
-                //command.Parameters.AddWithValue("@City", currentCity);
-                //using var reader = command.ExecuteReader();
-                //var cinemas = new List<string>();
-                //while (reader.Read())
-                //{
-                //    cinemas.Add(Convert.ToString(reader["Name"]));
-                //}
+                
                 return cinemas;
             }            
         }
@@ -335,24 +306,12 @@ namespace DataAccessAssignment3
             if (cinemaListBox.SelectedIndex == -1)
             {
                 return;
-            }
-
-            //string sql = @"
-            //    SELECT * FROM Screenings
-            //    JOIN Cinemas ON Screenings.CinemaID = Cinemas.ID
-            //    JOIN Movies ON Screenings.MovieID = Movies.ID
-            //    WHERE Cinemas.Name = @Cinema
-            //    ORDER BY Time";
-            //using var command = new SqlCommand(sql, connection);
-
-            //command.Parameters.AddWithValue("@Cinema", cinema);
-            //using var reader = command.ExecuteReader();
+            }            
 
             using (database = new AppDbContext())
             {
                 string cinema = (string)cinemaListBox.SelectedItem;
                 int cinemaID = database.Cinemas.First(c => c.Name == cinema).ID;
-                //var screenings = database.Screenings.Include(s => s.CinemaID).Include(s => s.MovieID).Where(s => s.CinemaID == cinemaID).ToList();
 
                 // For each screening:
                 foreach (var screening in database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.Cinema.ID == cinemaID))
@@ -367,7 +326,6 @@ namespace DataAccessAssignment3
                         HorizontalContentAlignment = HorizontalAlignment.Stretch
                     };
                     screeningPanel.Children.Add(button);
-                    //int screeningID = Convert.ToInt32(reader["ID"]);
                     int screeningID = screening.ID;
 
                     // When we click a screening, buy a ticket for it and update the GUI with the latest list of tickets.
@@ -385,17 +343,14 @@ namespace DataAccessAssignment3
                     grid.RowDefinitions.Add(new RowDefinition());
                     button.Content = grid;
 
-                    //var image = CreateImage(@"Posters\" + reader["PosterPath"]);
                     var image = CreateImage(@"Posters\" + database.Movies.First(m => m.ID == screening.Movie.ID).PosterPath);
                     image.Width = 50;
                     image.Margin = spacing;
-                    //image.ToolTip = new ToolTip { Content = reader["Title"] };
                     string title = database.Movies.First(m => m.ID == screening.Movie.ID).Title;
                     image.ToolTip = new ToolTip { Content = title };
                     AddToGrid(grid, image, 0, 0);
                     Grid.SetRowSpan(image, 3);
 
-                    //var time = (TimeSpan)reader["Time"];
                     var time = screening.Time;
                     var timeHeading = new TextBlock
                     {
@@ -410,7 +365,6 @@ namespace DataAccessAssignment3
 
                     var titleHeading = new TextBlock
                     {
-                        //Text = Convert.ToString(reader["Title"]),
                         Text = title,
                         Margin = spacing,
                         FontFamily = mainFont,
@@ -420,8 +374,6 @@ namespace DataAccessAssignment3
                     };
                     AddToGrid(grid, titleHeading, 1, 1);
 
-                    //var releaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
-                    //int runtimeMinutes = Convert.ToInt32(reader["Runtime"]);
                     var releaseDate = database.Movies.First(m => m.ID == screening.Movie.ID).ReleaseDate;
                     int runtimeMinutes = database.Movies.First(m => m.ID == screening.Movie.ID).Runtime;
                     var runtime = TimeSpan.FromMinutes(runtimeMinutes);
@@ -441,23 +393,12 @@ namespace DataAccessAssignment3
         // Buy a ticket for the specified screening and update the GUI with the latest list of tickets.
         private void BuyTicket(int screeningID)
         {
-            // First check if we already have a ticket for this screening.
-            //string countSql = "SELECT COUNT(*) FROM Tickets WHERE ScreeningID = @ScreeningID";
-            //var countCommand = new SqlCommand(countSql, connection);
-            //countCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
-            //int count = Convert.ToInt32(countCommand.ExecuteScalar());
-
+            // First check if we already have a ticket for this screening.            
             int count = database.Tickets.Count(t => t.Screening.ID == screeningID);
 
             // If we don't, add it.
             if (count == 0)
             {
-                //string insertSql = "INSERT INTO Tickets (ScreeningID, TimePurchased) VALUES (@ScreeningID, @TimePurchased)";
-                //using var insertCommand = new SqlCommand(insertSql, connection);
-                //insertCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
-                //insertCommand.Parameters.AddWithValue("@TimePurchased", DateTime.Now);
-                //insertCommand.ExecuteNonQuery();
-
                 Ticket ticket = new Ticket();
                 ticket.Screening.ID = screeningID;
                 ticket.TimePurchased = DateTime.Now;
@@ -472,15 +413,6 @@ namespace DataAccessAssignment3
         private void UpdateTicketList()
         {            
             ticketPanel.Children.Clear();
-
-            //string sql = @"
-            //    SELECT * FROM Tickets
-            //    JOIN Screenings ON Tickets.ScreeningID = Screenings.ID
-            //    JOIN Movies ON Screenings.MovieID = Movies.ID
-            //    JOIN Cinemas ON Screenings.CinemaID = Cinemas.ID
-            //    ORDER BY Tickets.TimePurchased";
-            //using var command = new SqlCommand(sql, connection);
-            //using var reader = command.ExecuteReader();
 
             using (database = new AppDbContext())
             {
@@ -499,8 +431,6 @@ namespace DataAccessAssignment3
                     };
                     ticketPanel.Children.Add(button);
 
-
-                    //int ticketID = Convert.ToInt32(reader["ID"]);
                     int ticketID = ticket.ID;
 
                     // When we click a ticket, remove it and update the GUI with the latest list of tickets.
@@ -517,13 +447,11 @@ namespace DataAccessAssignment3
                     grid.RowDefinitions.Add(new RowDefinition());
                     button.Content = grid;
 
-                    //var image = CreateImage(@"Posters\" + reader["PosterPath"]);
                     var screening = database.Screenings.First(s => s.ID == ticket.Screening.ID);
                     var image = CreateImage(@"Posters\" + database.Movies.Where(m => m.ID == screening.Movie.ID).Select(m => m.PosterPath).ToString());
 
                     image.Width = 30;
                     image.Margin = spacing;
-                    //image.ToolTip = new ToolTip { Content = reader["Title"] };
 
                     var movieName = database.Movies.Where(m => m.ID == screening.Movie.ID).Select(m => m.Title).ToString();
                     image.ToolTip = new ToolTip { Content = movieName };
@@ -533,7 +461,6 @@ namespace DataAccessAssignment3
 
                     var titleHeading = new TextBlock
                     {
-                        //Text = Convert.ToString(reader["Title"]),
                         Text = movieName,
                         Margin = spacing,
                         FontFamily = mainFont,
@@ -543,10 +470,7 @@ namespace DataAccessAssignment3
                     };
                     AddToGrid(grid, titleHeading, 0, 1);
 
-                    //var time = (TimeSpan)reader["Time"];
                     var time = screening.Time;
-
-                    //var time = (TimeSpan)database.Screenings.Where(s => s.ID == ticket.ID).First(m => m.Time);
 
                     var name = database.Cinemas.Where(c => c.ID == screening.Cinema.ID).Select(c => c.Name).ToString();
 
@@ -575,15 +499,7 @@ namespace DataAccessAssignment3
             database.SaveChanges();
 
             UpdateTicketList();
-
-
-            //string deleteSql = "DELETE FROM Tickets WHERE ID = @TicketID";
-            //var command = new SqlCommand(deleteSql, connection);
-            //command.Parameters.AddWithValue("@TicketID", ticketID);
-            //command.ExecuteNonQuery();
         }       
-
-        
 
         // Helper method to add a GUI element to the specified row and column in a grid.
         private void AddToGrid(Grid grid, UIElement element, int row, int column)
