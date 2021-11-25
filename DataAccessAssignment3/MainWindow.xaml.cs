@@ -16,8 +16,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-//using GeographyTools;
-//using Windows.Devices.Geolocation;
+using GeographyTools;
+using Windows.Devices.Geolocation;
 
 namespace DataAccessAssignment3
 {
